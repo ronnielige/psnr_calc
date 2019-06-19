@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>F:\HEVC_YUV_SEQ\4K_yuv\Boat_ToddlerFountain_Crosswalk_v2_3840x2160_F50_P420_10bit.yuv E:\sh_avs2_test\kwx_dec.yuv 3840</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>F:\HEVC_YUV_SEQ\4K_yuv\Boat_ToddlerFountain_Crosswalk_v2_3840x2160_F50_P420_10bit.yuv E:\sh_avs2_test\arc_sh_dec.yuv 3840 2160 10 600 0 355</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>
