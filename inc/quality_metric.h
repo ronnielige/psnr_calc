@@ -29,6 +29,10 @@ double  ssd_to_psnr(double max_ssd, int64_t act_ssd);
 void    get_default_qmctx(QMContext* qmctx);
 float   ssim_plane(uint8_t *main, int main_stride,
                    uint8_t *ref, int ref_stride,
-                   int width, int height, void *temp);
+                   int width, int height, void *temp, int max);
+float ssim_plane_16bit(uint8_t *main, int main_stride,
+                       uint8_t *ref, int ref_stride,
+                       int width, int height, void *temp,
+                       int max);
 
 #endif

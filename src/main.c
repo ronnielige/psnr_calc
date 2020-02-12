@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
     double  avg_psnr[3] = { 0.0, 0.0, 0.0 }, avg_ssim[3] = { 0.0, 0.0, 0.0 };
     double  pixel_max_ssd = 0;
     int*    temp;
+    int     size_temp;
     int i;
 
     ref_file = fopen(qmctx.s_ref_fname, "rb");
@@ -124,7 +125,6 @@ int main(int argc, char* argv[])
         printf("Open dst yuv file %s error!\n", qmctx.s_dst_fname);
         return -1;
     }
-
     alloc_frame(&ref_frame, qmctx.ia_width[CIDX_Y], qmctx.ia_height[CIDX_Y], qmctx.i_bit_depth, qmctx.i_chroma_format);
     alloc_frame(&dst_frame, qmctx.ia_width[CIDX_Y], qmctx.ia_height[CIDX_Y], qmctx.i_bit_depth, qmctx.i_chroma_format);
 
@@ -152,7 +152,10 @@ int main(int argc, char* argv[])
     printf("\n");
 
     //// Step 2: Metric Quality
-    temp = (int *)malloc((2 * qmctx.ia_width[CIDX_Y] + 12) * sizeof(int));
+    size_temp = (2 * qmctx.ia_width[CIDX_Y] + 12) * (qmctx.i_bit_depth > 8 ? sizeof(int64_t[4]) : sizeof(int[4]));
+    temp = (int *)malloc(size_temp);
+    memset(temp, 0, size_temp);
+
     for (i = 0; i < qmctx.i_frame_num; i++)
     {
         if (read_frame(ref_file, &ref_frame) < 0)
@@ -174,9 +177,14 @@ int main(int argc, char* argv[])
         {
             for (int cidx = CIDX_Y; cidx <= CIDX_V; cidx++)
             {
-                frame_ssim[cidx] = ssim_plane(ref_frame.yuv[cidx], ref_frame.width[cidx] * pixel_byte,
-                                              dst_frame.yuv[cidx], dst_frame.width[cidx] * pixel_byte,
-                                              ref_frame.width[cidx], ref_frame.height[cidx], temp);
+                if(qmctx.i_bit_depth == 8)
+                    frame_ssim[cidx] = ssim_plane(ref_frame.yuv[cidx], ref_frame.width[cidx],
+                                                  dst_frame.yuv[cidx], dst_frame.width[cidx],
+                                                  ref_frame.width[cidx], ref_frame.height[cidx], temp, pixel_max_value);
+                else if (qmctx.i_bit_depth == 10)
+                    frame_ssim[cidx] = ssim_plane_16bit(ref_frame.yuv[cidx], ref_frame.width[cidx] * pixel_byte,
+                                                        dst_frame.yuv[cidx], dst_frame.width[cidx] * pixel_byte,
+                                                        ref_frame.width[cidx], ref_frame.height[cidx], temp, pixel_max_value);
                 avg_ssim[cidx] += frame_ssim[cidx];
             }
             printf("%6.3f    %6.3f    %6.3f    ", frame_ssim[CIDX_Y], frame_ssim[CIDX_U], frame_ssim[CIDX_V]);

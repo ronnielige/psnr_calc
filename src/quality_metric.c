@@ -169,10 +169,76 @@ static float ssim_endn(const int(*sum0)[4], const int(*sum1)[4], int width)
 
 #define FFSWAP(type,a,b) do{type SWAP_tmp= b; b= a; a= SWAP_tmp;}while(0)
 
+static void ssim_4x4xn_16bit(const uint8_t *main8, ptrdiff_t main_stride,
+                             const uint8_t *ref8, ptrdiff_t ref_stride,
+                             int64_t(*sums)[4], int width)
+{
+    const uint16_t *main16 = (const uint16_t *)main8;
+    const uint16_t *ref16 = (const uint16_t *)ref8;
+    int x, y, z;
+
+    main_stride >>= 1;
+    ref_stride >>= 1;
+
+    for (z = 0; z < width; z++) {
+        uint64_t s1 = 0, s2 = 0, ss = 0, s12 = 0;
+
+        for (y = 0; y < 4; y++) {
+            for (x = 0; x < 4; x++) {
+                unsigned a = main16[x + y * main_stride];
+                unsigned b = ref16[x + y * ref_stride];
+
+                s1 += a;
+                s2 += b;
+                ss += a*a;
+                ss += b*b;
+                s12 += a*b;
+            }
+        }
+
+        sums[z][0] = s1;
+        sums[z][1] = s2;
+        sums[z][2] = ss;
+        sums[z][3] = s12;
+        main16 += 4;
+        ref16 += 4;
+    }
+}
+
+static float ssim_end1x(int64_t s1, int64_t s2, int64_t ss, int64_t s12, int max)
+{
+    int64_t ssim_c1 = (int64_t)(.01*.01*max*max * 64 + .5);
+    int64_t ssim_c2 = (int64_t)(.03*.03*max*max * 64 * 63 + .5);
+
+    int64_t fs1 = s1;
+    int64_t fs2 = s2;
+    int64_t fss = ss;
+    int64_t fs12 = s12;
+    int64_t vars = fss * 64 - fs1 * fs1 - fs2 * fs2;
+    int64_t covar = fs12 * 64 - fs1 * fs2;
+
+    return (float)(2 * fs1 * fs2 + ssim_c1) * (float)(2 * covar + ssim_c2)
+        / ((float)(fs1 * fs1 + fs2 * fs2 + ssim_c1) * (float)(vars + ssim_c2));
+}
+
+static float ssim_endn_16bit(const int64_t(*sum0)[4], const int64_t(*sum1)[4], int width, int max)
+{
+    float ssim = 0.0;
+    int i;
+
+    for (i = 0; i < width; i++)
+        ssim += ssim_end1x(sum0[i][0] + sum0[i + 1][0] + sum1[i][0] + sum1[i + 1][0],
+            sum0[i][1] + sum0[i + 1][1] + sum1[i][1] + sum1[i + 1][1],
+            sum0[i][2] + sum0[i + 1][2] + sum1[i][2] + sum1[i + 1][2],
+            sum0[i][3] + sum0[i + 1][3] + sum1[i][3] + sum1[i + 1][3],
+            max);
+    return ssim;
+}
+
 /* main_stride ref_stride is stride in bytes.*/
 float ssim_plane(uint8_t *main, int main_stride,
                  uint8_t *ref,  int ref_stride,
-                 int width, int height, void *temp)
+                 int width, int height, void *temp, int max)
 {
     int z = 0, y;
     float ssim = 0.0;
@@ -193,6 +259,33 @@ float ssim_plane(uint8_t *main, int main_stride,
         }
 
         ssim += ssim_endn((const int(*)[4])sum0, (const int(*)[4])sum1, width - 1);
+    }
+
+    return ssim / ((height - 1) * (width - 1));
+}
+
+float ssim_plane_16bit(uint8_t *main, int main_stride,
+                       uint8_t *ref,  int ref_stride,
+                       int width, int height, void *temp,
+                       int max)
+{
+    int z = 0, y;
+    float ssim = 0.0;
+    int64_t(*sum0)[4] = temp;
+    int64_t(*sum1)[4] = sum0 + (width >> 2) + 3;
+
+    width >>= 2;
+    height >>= 2;
+
+    for (y = 1; y < height; y++) {
+        for (; z <= y; z++) {
+            FFSWAP(void*, sum0, sum1);
+            ssim_4x4xn_16bit(&main[4 * z * main_stride], main_stride,
+                             &ref[4 * z * ref_stride],   ref_stride,
+                             sum0, width);
+        }
+
+        ssim += ssim_endn_16bit((const int64_t(*)[4])sum0, (const int64_t(*)[4])sum1, width - 1, max);
     }
 
     return ssim / ((height - 1) * (width - 1));
