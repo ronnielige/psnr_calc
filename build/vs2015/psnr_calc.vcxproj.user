@@ -5,7 +5,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--ref F:\HEVC_YUV_SEQ\4K_yuv\EBU_06_Starting_1920x1080p_50_hf_709_ct2020_444_420.yuv --dst F:\HEVC_YUV_SEQ\4K_yuv\EBU_04_Hurdles_1920x1080p_50_hf_709_ct2020_444_420.yuv --width 1920 --height 1080  --threads 10 --metric-method 3 --bitdepth 10 --chroma-format 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--ref F:\HEVC_YUV_SEQ\4K_yuv\EBU_06_Starting_1920x1080p_50_hf_709_ct2020_444_420.yuv --dst F:\HEVC_YUV_SEQ\4K_yuv\EBU_04_Hurdles_1920x1080p_50_hf_709_ct2020_444_420.yuv --width 1920 --height 1080  --threads 10 --metric-method 3 --bitdepth 10 --chroma-format 1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

@@ -4,20 +4,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+const char* cf_name[4] = { "YUV400", "YUV420", "YUV422", "YUV444" };
+
 void show_parameters(QMContext* qmctx)
 {
     printf("ref yuv:            %s\n", qmctx->s_ref_fname);
     printf("dst yuv:            %s\n", qmctx->s_dst_fname);
-    printf("width  :            %d\n", qmctx->ia_width[CIDX_Y]);
-    printf("height :            %d\n", qmctx->ia_height[CIDX_Y]);
-    printf("bit_depth:          %d\n", qmctx->i_bit_depth);
-    printf("chroma_format:      %d\n", qmctx->i_chroma_format);
-    printf("frame_num:          %d\n", qmctx->i_frame_num);
-    printf("ref_skip_frame_num: %d\n", qmctx->i_ref_skip_num);
-    printf("dst_skip_frame_num: %d\n", qmctx->i_dst_skip_num);
-    printf("auto_skip:          %d\n", qmctx->i_auto_skip);
-    printf("threads:            %d\n", qmctx->i_threads);
-    printf("metric_method:      %d\n", qmctx->i_metric_method);
+    printf("width     / height       / bit_depth    / chroma_format :  %5d / %5d / %5d / %5s\n", 
+           qmctx->ia_width[CIDX_Y], qmctx->ia_height[CIDX_Y], qmctx->i_bit_depth, cf_name[qmctx->i_chroma_format]);
+    printf("frame_num / ref_skip_num / dst_skip_num / auto_skip     :  %5d / %5d / %5d / %5d\n", 
+           qmctx->i_frame_num, qmctx->i_ref_skip_num, qmctx->i_dst_skip_num, qmctx->i_auto_skip);
+    printf("threads   / metric_method/ version                      :  %5d / %5d / %d.%d.%d.%d\n\n", 
+           qmctx->i_threads, qmctx->i_metric_method, VER_MAJOR, VER_MINOR, VER_RELEASE, VER_BUILD);
 }
 
 int parse_cmds(int argc, char**argv, QMContext* qmctx)

@@ -1,5 +1,6 @@
 #ifndef AS265CLI_H
 #define AS265CLI_H
+#include "defines.h"
 
 static const char short_options[] = "o:D:p:f:I:hwV?";
 static const struct option long_options[] = 
@@ -24,8 +25,8 @@ static const struct option long_options[] =
 
 static void showHelp(void)
 {
-    printf("Quality Metric Tool(Calculate psnr or ssim for yuvs)\n");
-    printf("Usage: quality_metric.exe [options] ref.yuv dst.yuv\n");
+    printf("Quality Metric Tool (Calculate psnr or ssim for yuvs) - Version %d.%d.%d.%d\n", VER_MAJOR, VER_MINOR, VER_RELEASE, VER_BUILD);
+    printf("Usage: quality_metric.exe [--option opt_value]\n");
     printf("\nExecutable Options\n");
     printf("   -h/--help                   show help text and exit\n");
     printf("\nOptions:\n");
@@ -35,7 +36,7 @@ static void showHelp(void)
     printf("   --width                     source picture width\n");
     printf("   --height                    source picture height\n");
     printf("   --frames                    number of frames to metric. default 99999\n");
-    printf("   --chroma-format             0: YUV400; 1: YUV420; 2: YUV422. default 1\n");
+    printf("   --chroma-format             0: YUV400; 1: YUV420; 2: YUV422; 3: YUV444. default 1(YUV420)\n");
     printf("   --ref-skip-num              skip how many frames of the ref yuv. default 0\n");
     printf("   --dst-skip-num              skip how many frames of the dst yuv. default 0\n");
     printf("   --auto-skip                 auto decide skip how many frames of ref yuv and dst yuv, may be inaccurate. default 0\n");           

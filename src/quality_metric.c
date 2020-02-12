@@ -7,7 +7,7 @@ void get_default_qmctx(QMContext* qmctx)
     sprintf(qmctx->s_dst_fname, "");
     sprintf(qmctx->s_out_fname, "");
     qmctx->i_bit_depth       = 8;
-    qmctx->i_frame_num       = 999999;
+    qmctx->i_frame_num       = 99999;
     qmctx->i_chroma_format   = YUV420;
     qmctx->ia_width[CIDX_Y]  = 1920;
     qmctx->ia_width[CIDX_U]  = qmctx->ia_width[CIDX_V] = 960;

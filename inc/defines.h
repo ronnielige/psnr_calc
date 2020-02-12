@@ -1,6 +1,11 @@
 #ifndef _DEFINE_H_
 #define _DEFINE_H_
 
+#define VER_MAJOR       1
+#define VER_MINOR       0
+#define VER_RELEASE     0
+#define VER_BUILD       1
+
 typedef long long      int64_t;
 typedef unsigned short uint16_t;
 typedef unsigned char  uint8_t;
@@ -16,9 +21,10 @@ enum {
 };
 
 enum {
-    YUV420 = 0,
-    YUV422 = 1,
-    YUV444 = 2,
+    YUV400 = 0,
+    YUV420 = 1,
+    YUV422 = 2,
+    YUV444 = 3,
 };
 
 enum {
