@@ -5,7 +5,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--ref F:\HEVC_YUV_SEQ\Bbasketballdrive_1920x1080_8_50_500.yuv --dst F:\HEVC_YUV_SEQ\BBasketballdrive_dec.yuv --width 1920 --height 1080 --ref-skip-num 0 --dst-skip-num 0 --threads 10 </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--metric-method 2 --ref F:\HEVC_YUV_SEQ\Bbasketballdrive_1920x1080_8_50_500.yuv --dst F:\HEVC_YUV_SEQ\BBasketballdrive_dec.yuv --width 1920 --height 1080 --ref-skip-num 0 --dst-skip-num 0 --threads 10 </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

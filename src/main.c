@@ -2,6 +2,7 @@
 #include "getopt.h"
 #include "options.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 void show_parameters(QMContext* qmctx)
 {
@@ -105,10 +106,10 @@ int main(int argc, char* argv[])
     FILE* ref_file, *dst_file;
     Frame ref_frame, dst_frame;
     int64_t frame_ssd[3];
-    double  frame_psnr[3];
-    double  frame_ssim[3];
-    double  avg_psnr[3] = { 0.0, 0.0, 0.0 };
+    double  frame_psnr[3], frame_ssim[3];
+    double  avg_psnr[3] = { 0.0, 0.0, 0.0 }, avg_ssim[3] = { 0.0, 0.0, 0.0 };
     double  pixel_max_ssd = 0;
+    int*    temp;
     int i;
 
     ref_file = fopen(qmctx.s_ref_fname, "rb");
@@ -139,31 +140,63 @@ int main(int argc, char* argv[])
     }
 
     int pixel_max_value = (1 << qmctx.i_bit_depth) - 1;
+    int pixel_byte = (qmctx.i_bit_depth > 8 ? 2 : 1);
     pixel_max_ssd = pixel_max_value * pixel_max_value;
 
-    printf(" Frame    PSNR_Y    PSNR_U    PSNR_V\n");
+    //// Step 1: Show Title
+    printf(" Frame    ");
+    if(qmctx.i_metric_method & M_PSNR)
+        printf("PSNR_Y    PSNR_U    PSNR_V    ");
+    if (qmctx.i_metric_method & M_SSIM)
+        printf("SSIM_Y    SSIM_U    SSIM_V    ");
+    printf("\n");
+
+    //// Step 2: Metric Quality
+    temp = (int *)malloc((2 * qmctx.ia_width[CIDX_Y] + 12) * sizeof(int));
     for (i = 0; i < qmctx.i_frame_num; i++)
     {
         if (read_frame(ref_file, &ref_frame) < 0)
             break;
         if (read_frame(dst_file, &dst_frame) < 0)
             break;
-        get_frame_ssd(&ref_frame, &dst_frame, frame_ssd);
-
-        frame_psnr[CIDX_Y] = ssd_to_psnr(pixel_max_ssd * ref_frame.width[CIDX_Y] * ref_frame.height[CIDX_Y], frame_ssd[CIDX_Y]);
-        frame_psnr[CIDX_U] = ssd_to_psnr(pixel_max_ssd * ref_frame.width[CIDX_CHROMA] * ref_frame.height[CIDX_CHROMA], frame_ssd[CIDX_U]);
-        frame_psnr[CIDX_V] = ssd_to_psnr(pixel_max_ssd * ref_frame.width[CIDX_CHROMA] * ref_frame.height[CIDX_CHROMA], frame_ssd[CIDX_V]);
-        printf("%6d    %6.3f    %6.3f    %6.3f\n", i + 1, frame_psnr[CIDX_Y], frame_psnr[CIDX_U], frame_psnr[CIDX_V]);
-        avg_psnr[CIDX_Y] += frame_psnr[CIDX_Y];
-        avg_psnr[CIDX_U] += frame_psnr[CIDX_U];
-        avg_psnr[CIDX_V] += frame_psnr[CIDX_V];
+        printf("%6d    ", i + 1);
+        if (qmctx.i_metric_method & M_PSNR)
+        {
+            get_frame_ssd(&ref_frame, &dst_frame, frame_ssd);
+            for (int cidx = CIDX_Y; cidx <= CIDX_V; cidx++)
+            {
+                frame_psnr[cidx] = ssd_to_psnr(pixel_max_ssd * ref_frame.width[cidx] * ref_frame.height[cidx], frame_ssd[cidx]);
+                avg_psnr[cidx] += frame_psnr[cidx];
+            }
+            printf("%6.3f    %6.3f    %6.3f    ", frame_psnr[CIDX_Y], frame_psnr[CIDX_U], frame_psnr[CIDX_V]);
+        }
+        if (qmctx.i_metric_method & M_SSIM)
+        {
+            for (int cidx = CIDX_Y; cidx <= CIDX_V; cidx++)
+            {
+                frame_ssim[cidx] = ssim_plane(ref_frame.yuv[cidx], ref_frame.width[cidx] * pixel_byte,
+                                              dst_frame.yuv[cidx], dst_frame.width[cidx] * pixel_byte,
+                                              ref_frame.width[cidx], ref_frame.height[cidx], temp);
+                avg_ssim[cidx] += frame_ssim[cidx];
+            }
+            printf("%6.3f    %6.3f    %6.3f    ", frame_ssim[CIDX_Y], frame_ssim[CIDX_U], frame_ssim[CIDX_V]);
+        }
+        printf("\n");
     }
 
+    /// Step 3. Show Average result
     qmctx.i_frame_num = i == 0 ? 1 : i;
-    printf("Average   %6.3f    %6.3f    %6.3f\n", avg_psnr[CIDX_Y] / qmctx.i_frame_num, avg_psnr[CIDX_U] / qmctx.i_frame_num, avg_psnr[CIDX_V] / qmctx.i_frame_num);
+    printf("Average   ");
+    if (qmctx.i_metric_method & M_PSNR)
+        printf("%6.3f    %6.3f    %6.3f    ", avg_psnr[CIDX_Y] / qmctx.i_frame_num, avg_psnr[CIDX_U] / qmctx.i_frame_num, avg_psnr[CIDX_V] / qmctx.i_frame_num);
+    if (qmctx.i_metric_method & M_SSIM)
+        printf("%6.3f    %6.3f    %6.3f    ", avg_ssim[CIDX_Y] / qmctx.i_frame_num, avg_ssim[CIDX_U] / qmctx.i_frame_num, avg_ssim[CIDX_V] / qmctx.i_frame_num);
+    printf("\n");
 
+    /// Step 4. Release resource
     free_frame(&ref_frame);
     free_frame(&dst_frame);
+    free(temp);
     fclose(dst_file);
     fclose(ref_file);
     return 1;
