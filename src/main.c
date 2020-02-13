@@ -156,9 +156,9 @@ int main(int argc, char* argv[])
 
     for (i = 0; i < qmctx.i_frame_num; i++)
     {
-        if (read_frame(ref_file, &ref_frame) < 0)
+        if (read_nframe(ref_file, &ref_frame, i) < 0)
             break;
-        if (read_frame(dst_file, &dst_frame) < 0)
+        if (read_nframe(dst_file, &dst_frame, i) < 0)
             break;
         printf("%6d    ", i + 1);
         if (qmctx.i_metric_method & M_PSNR)
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 
     /// Step 3. Show Average result
     qmctx.i_frame_num = i == 0 ? 1 : i;
-    printf("Average   ");
+    printf("\nAverage   ");
     if (qmctx.i_metric_method & M_PSNR)
         printf("%6.3f    %6.3f    %6.3f    ", avg_psnr[CIDX_Y] / qmctx.i_frame_num, avg_psnr[CIDX_U] / qmctx.i_frame_num, avg_psnr[CIDX_V] / qmctx.i_frame_num);
     if (qmctx.i_metric_method & M_SSIM)

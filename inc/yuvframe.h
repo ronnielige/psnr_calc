@@ -18,4 +18,5 @@ typedef struct yuv_frame {
 int  alloc_frame(Frame* f, int width, int height, int bit_depth, int chroma_format);
 void free_frame(Frame* f);
 int  read_frame(FILE* in_f, Frame* f);
+int  read_nframe(FILE* in_f, Frame* f, int frm_num);
 #endif

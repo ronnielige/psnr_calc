@@ -87,7 +87,7 @@ int jump_to_frame(FILE* in_f, int64_t frame_size, int64_t frame_number)
     ret = _fseeki64(in_f, 0L, SEEK_SET);
 #endif
 
-    ret = _fseeki64(in_f, frame_number * frame_size, SEEK_SET); // seek to frame_number
+    ret = _fseeki64(in_f, (int64_t)frame_number * frame_size, SEEK_SET); // seek to frame_number
     if (ret != 0)
         return -1;
     return 0;

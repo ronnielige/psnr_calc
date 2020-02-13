@@ -50,3 +50,22 @@ int read_frame(FILE* in_f, Frame* f)
         return -1;
     return 0;
 }
+
+int read_nframe(FILE* in_f, Frame* f, int frm_num)
+{
+    int ret = 0;
+    ret = _fseeki64(in_f, 0L, SEEK_SET);                      // seek to beginning
+    if (ret != 0)
+        return -1;
+    ret = _fseeki64(in_f, (int64_t)frm_num * f->frame_size, SEEK_SET); // seek to frame_number
+    if (ret != 0)
+        return -1;
+
+    if (f->y_size != fread(f->yuv[CIDX_Y], 1, f->y_size, in_f))
+        return -1;
+    if (f->uv_size != fread(f->yuv[CIDX_U], 1, f->uv_size, in_f))
+        return -1;
+    if (f->uv_size != fread(f->yuv[CIDX_V], 1, f->uv_size, in_f))
+        return -1;
+    return 0;
+}
