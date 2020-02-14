@@ -18,6 +18,9 @@ void get_default_qmctx(QMContext* qmctx)
     qmctx->i_auto_skip       = 0;
     qmctx->i_threads         = 1;
     qmctx->i_metric_method   = M_PSNR;
+    qmctx->i_exit            = 0;
+    memset(&qmctx->result_stat, 0, sizeof(StatResult));
+    pthread_mutex_init(&qmctx->result_stat.mtx, NULL);
 }
 
 int64_t get_block_ssd_8bit(unsigned char* pix1, unsigned char* pix2, int width, int height)

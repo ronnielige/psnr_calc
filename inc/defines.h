@@ -33,4 +33,10 @@ enum {
     M_SSIM = 2,
 };
 
+#if 0
+#define myprintf printf
+#else
+#define myprintf(str, ...) 
+#endif
+
 #endif

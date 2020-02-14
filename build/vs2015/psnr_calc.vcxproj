@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\src\getopt.c" />
     <ClCompile Include="..\..\src\main.c" />
     <ClCompile Include="..\..\src\quality_metric.c" />
+    <ClCompile Include="..\..\src\threadpool.c" />
     <ClCompile Include="..\..\src\yuvframe.c" />
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +30,8 @@
     <ClInclude Include="..\..\inc\getopt.h" />
     <ClInclude Include="..\..\inc\defines.h" />
     <ClInclude Include="..\..\inc\quality_metric.h" />
+    <ClInclude Include="..\..\inc\threadpool.h" />
+    <ClInclude Include="..\..\inc\w32thread.h" />
     <ClInclude Include="..\..\inc\yuvframe.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

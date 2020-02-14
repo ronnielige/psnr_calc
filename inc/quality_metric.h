@@ -2,6 +2,15 @@
 #define _QUALITY_METRIC_H_
 #include "defines.h"
 #include "yuvframe.h"
+#include "w32thread.h"
+
+typedef struct _stat_result
+{
+    double avg_psnr[3];
+    double avg_ssim[3];
+    int    i_do_frames;
+    pthread_mutex_t mtx;
+}StatResult;
 
 typedef struct _QualityMetric_Context
 {
@@ -19,6 +28,8 @@ typedef struct _QualityMetric_Context
     int   i_auto_skip;                    // auto decide skipped frame numbers of ref and dst yuv. default 0
     int   i_metric_method;                // quality metric method(psnr & ssim): 1 - psnr, 2 - ssim, 3 - psnr + ssim
     int   i_threads;
+    int   i_exit;
+    StatResult result_stat;
 }QualityMetricContext, QMContext;
 
 int64_t get_block_ssd_8bit(unsigned char* pix1, unsigned char* pix2, int width, int height);
