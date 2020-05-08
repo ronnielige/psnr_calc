@@ -7,6 +7,10 @@
 #include "threadpool.h"
 #include "defines.h"
 #include <malloc.h>
+#include <string.h>
+#ifdef linux
+#include <unistd.h>
+#endif
 
 void push_job_into_list(JobList* jobLst, Job* njb);
 
@@ -139,7 +143,11 @@ int threadpool_init(threadpool_t **p_pool, int threads)
     for (int i = 0; i < threads; i++)
     {
         ret = pthread_create(&threadp->p_thread_handles[i], NULL, thread_run, (void*)threadp);
+#ifndef linux
         Sleep(100);
+#else
+        usleep(1000);
+#endif
     }
 
     return 1;

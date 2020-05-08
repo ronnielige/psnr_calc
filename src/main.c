@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "threadpool.h"
+#include <string.h>
+#ifdef linux
+#include <unistd.h>
+#include "version.h"
+#endif
 
 const char* cf_name[4] = { "YUV400", "YUV420", "YUV422", "YUV444" };
 
@@ -262,7 +267,11 @@ threadCtx* get_one_thread_context(threadCtx* tctx_array, int len)
                 return &tctx_array[i];
             }
         } 
+#ifndef linux
         Sleep(1);
+#else
+        usleep(1000);
+#endif
     }
 }
 

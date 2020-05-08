@@ -6,11 +6,13 @@
 #define VER_RELEASE     0
 #define VER_BUILD       1
 
+#ifndef linux
 typedef long long      int64_t;
+typedef unsigned long long uint64_t;
+#endif
 typedef unsigned short uint16_t;
 typedef unsigned char  uint8_t;
 typedef unsigned int   uint32_t;
-typedef unsigned long long uint64_t;
 #define MAX  0x7FFFFFFF
 
 enum {

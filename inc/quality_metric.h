@@ -2,7 +2,9 @@
 #define _QUALITY_METRIC_H_
 #include "defines.h"
 #include "yuvframe.h"
+#ifndef linux
 #include "w32thread.h"
+#endif
 
 typedef struct _stat_result
 {

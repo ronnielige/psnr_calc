@@ -54,10 +54,18 @@ int read_frame(FILE* in_f, Frame* f)
 int read_nframe(FILE* in_f, Frame* f, int frm_num)
 {
     int ret = 0;
+#ifndef linux
     ret = _fseeki64(in_f, 0L, SEEK_SET);                      // seek to beginning
+#else
+    ret = fseeko64(in_f, 0L, SEEK_SET);                      // seek to beginning
+#endif
     if (ret != 0)
         return -1;
+#ifndef linux
     ret = _fseeki64(in_f, (int64_t)frm_num * f->frame_size, SEEK_SET); // seek to frame_number
+#else
+    ret = fseeko64(in_f, (int64_t)frm_num * f->frame_size, SEEK_SET); // seek to frame_number
+#endif
     if (ret != 0)
         return -1;
 

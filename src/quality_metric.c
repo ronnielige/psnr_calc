@@ -1,5 +1,11 @@
 #include "quality_metric.h"
 #include <math.h>
+#include <string.h>
+#ifdef linux
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+#endif
 
 void get_default_qmctx(QMContext* qmctx)
 {
@@ -78,7 +84,11 @@ void get_frame_ssd(Frame* ref, Frame* dst, int64_t ssd[])
 int jump_to_frame(FILE* in_f, int64_t frame_size, int64_t frame_number)
 {
     int ret = 0;
+#ifndef linux
     ret = _fseeki64(in_f, 0L, SEEK_SET);                         // seek to beginning
+#else
+    ret = fseeko64(in_f, 0L, SEEK_SET);                         // seek to beginning
+#endif
     if (ret != 0)
         return -1;
 
@@ -90,7 +100,11 @@ int jump_to_frame(FILE* in_f, int64_t frame_size, int64_t frame_number)
     ret = _fseeki64(in_f, 0L, SEEK_SET);
 #endif
 
+#ifndef linux
     ret = _fseeki64(in_f, (int64_t)frame_number * frame_size, SEEK_SET); // seek to frame_number
+#else
+    ret = fseeko64(in_f, (int64_t)frame_number * frame_size, SEEK_SET); // seek to frame_number
+#endif
     if (ret != 0)
         return -1;
     return 0;
