@@ -1,4 +1,4 @@
-VERSION_quality_metric_1_0_0_1
+VERSION_quality_metric_1_0_0_2
 
 
 

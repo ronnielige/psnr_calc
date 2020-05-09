@@ -183,6 +183,7 @@ int process_quality_metric_singlethread(QMContext* qmctx)
     temp = (int *)malloc(size_temp);
     memset(temp, 0, size_temp);
 
+    fprintf(stderr, "Finished %3d%%", (int)0);
     for (i = 0; i < qmctx->i_frame_num; i++)
     {
         if (read_nframe(ref_file, &ref_frame, i) < 0)
@@ -222,7 +223,7 @@ int process_quality_metric_singlethread(QMContext* qmctx)
         fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\bFinished %3d%%", (int)progress);
         fflush(stderr);
     }
-    //fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\bFinished %3d%%", (int)100);
+    fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\bFinished %3d%%\n", (int)100);
 
     /// Step 3. Show Average result
     qmctx->i_frame_num = i == 0 ? 1 : i;
@@ -239,7 +240,6 @@ int process_quality_metric_singlethread(QMContext* qmctx)
     free(temp);
     fclose(dst_file);
     fclose(ref_file);
-	fclose(out_file);
     return 0;
 }
 

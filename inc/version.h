@@ -3,7 +3,7 @@
 #define VER_MAJOR    1
 #define VER_MINOR    0
 #define VER_RELEASE  0
-#define VER_BUILD    1
+#define VER_BUILD    2
 //#define VER_BRANCH   0
 
 #ifdef linux
