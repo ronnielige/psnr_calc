@@ -77,3 +77,23 @@ int read_nframe(FILE* in_f, Frame* f, int frm_num)
         return -1;
     return 0;
 }
+
+int get_file_frame_num(FILE* in_f, Frame* f)
+{
+    long long file_size = -1;
+    int ret = 0;
+#ifndef linux
+    ret = _fseeki64(in_f, 0, SEEK_END); // seek to frame_number
+#else
+    ret = fseeko64(in_f, 0, SEEK_END); // seek to frame_number
+#endif
+    if (ret != 0)
+        return -1;
+
+#ifndef linux
+    file_size = _ftelli64(in_f);
+#else
+    file_size = ftello64(in_f);
+#endif
+    return (int)(file_size / f->frame_size);
+}

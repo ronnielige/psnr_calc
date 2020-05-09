@@ -1,6 +1,7 @@
 #ifndef AS265CLI_H
 #define AS265CLI_H
 #include "defines.h"
+#include "version.h"
 
 static const char short_options[] = "o:D:p:f:I:hwV?";
 static const struct option long_options[] = 

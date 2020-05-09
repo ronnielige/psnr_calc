@@ -19,4 +19,5 @@ int  alloc_frame(Frame* f, int width, int height, int bit_depth, int chroma_form
 void free_frame(Frame* f);
 int  read_frame(FILE* in_f, Frame* f);
 int  read_nframe(FILE* in_f, Frame* f, int frm_num);
+int  get_file_frame_num(FILE* in_f, Frame* f);
 #endif

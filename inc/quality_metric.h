@@ -20,6 +20,7 @@ typedef struct _QualityMetric_Context
     char  s_ref_fname[FILE_NAME_LENGTH];  // reference yuv file name
     char  s_dst_fname[FILE_NAME_LENGTH];  // dist yuv file name
     char  s_out_fname[FILE_NAME_LENGTH];  // output result file name
+    FILE* out_file;
     int   ia_width[3];
     int   ia_height[3];
     int   i_chroma_format;

@@ -1,11 +1,6 @@
 #ifndef _DEFINE_H_
 #define _DEFINE_H_
 
-#define VER_MAJOR       1
-#define VER_MINOR       0
-#define VER_RELEASE     0
-#define VER_BUILD       1
-
 #ifndef linux
 typedef long long      int64_t;
 typedef unsigned long long uint64_t;

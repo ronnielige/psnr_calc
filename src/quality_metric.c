@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #endif
+#include <stdio.h>
 
 void get_default_qmctx(QMContext* qmctx)
 {
@@ -25,6 +26,7 @@ void get_default_qmctx(QMContext* qmctx)
     qmctx->i_threads         = 1;
     qmctx->i_metric_method   = M_PSNR;
     qmctx->i_exit            = 0;
+    qmctx->out_file          = stdout;
     memset(&qmctx->result_stat, 0, sizeof(StatResult));
     pthread_mutex_init(&qmctx->result_stat.mtx, NULL);
 }

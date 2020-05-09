@@ -7,8 +7,8 @@
 #include <string.h>
 #ifdef linux
 #include <unistd.h>
-#include "version.h"
 #endif
+#include "version.h"
 
 const char* cf_name[4] = { "YUV400", "YUV420", "YUV422", "YUV444" };
 
@@ -36,13 +36,14 @@ typedef struct _threadCtx
 
 void show_parameters(QMContext* qmctx)
 {
-    printf("ref yuv:            %s\n", qmctx->s_ref_fname);
-    printf("dst yuv:            %s\n", qmctx->s_dst_fname);
-    printf("width     / height       / bit_depth    / chroma_format :  %5d / %5d / %5d / %5s\n", 
+    FILE* out_file = qmctx->out_file;
+    fprintf(out_file, "ref yuv:            %s\n", qmctx->s_ref_fname);
+    fprintf(out_file, "dst yuv:            %s\n", qmctx->s_dst_fname);
+    fprintf(out_file, "width     / height       / bit_depth    / chroma_format :  %5d / %5d / %5d / %5s\n", 
            qmctx->ia_width[CIDX_Y], qmctx->ia_height[CIDX_Y], qmctx->i_bit_depth, cf_name[qmctx->i_chroma_format]);
-    printf("frame_num / ref_skip_num / dst_skip_num / auto_skip     :  %5d / %5d / %5d / %5d\n", 
+    fprintf(out_file, "frame_num / ref_skip_num / dst_skip_num / auto_skip     :  %5d / %5d / %5d / %5d\n", 
            qmctx->i_frame_num, qmctx->i_ref_skip_num, qmctx->i_dst_skip_num, qmctx->i_auto_skip);
-    printf("threads   / metric_method/ version                      :  %5d / %5d / %d.%d.%d.%d\n\n", 
+    fprintf(out_file, "threads   / metric_method/ version                      :  %5d / %5d / %d.%d.%d.%d\n\n", 
            qmctx->i_threads, qmctx->i_metric_method, VER_MAJOR, VER_MINOR, VER_RELEASE, VER_BUILD);
 }
 
@@ -120,39 +121,48 @@ int parse_cmds(int argc, char**argv, QMContext* qmctx)
 
 int process_quality_metric_singlethread(QMContext* qmctx)
 {
-    FILE* ref_file, *dst_file;
+    FILE* ref_file, *dst_file, *out_file = qmctx->out_file;
     Frame ref_frame, dst_frame;
     int64_t frame_ssd[3];
     double  frame_psnr[3], frame_ssim[3];
     double  avg_psnr[3] = { 0.0, 0.0, 0.0 }, avg_ssim[3] = { 0.0, 0.0, 0.0 };
     double  pixel_max_ssd = 0;
+    double  progress = 0;
     int*    temp;
     int     size_temp;
+    int     srcfile_total_frms = 0, dstfile_total_frms = 0, max_avail_frames = 0;
     int i;
 
     ref_file = fopen(qmctx->s_ref_fname, "rb");
     if (NULL == ref_file)
     {
-        printf("Open ref yuv file %s error!\n", qmctx->s_ref_fname);
+        fprintf(stderr, "Open ref yuv file %s error!\n", qmctx->s_ref_fname);
         return -1;
     }
     dst_file = fopen(qmctx->s_dst_fname, "rb");
     if (NULL == ref_file)
     {
-        printf("Open dst yuv file %s error!\n", qmctx->s_dst_fname);
+        fprintf(stderr, "Open dst yuv file %s error!\n", qmctx->s_dst_fname);
         return -1;
     }
+
     alloc_frame(&ref_frame, qmctx->ia_width[CIDX_Y], qmctx->ia_height[CIDX_Y], qmctx->i_bit_depth, qmctx->i_chroma_format);
     alloc_frame(&dst_frame, qmctx->ia_width[CIDX_Y], qmctx->ia_height[CIDX_Y], qmctx->i_bit_depth, qmctx->i_chroma_format);
 
+    srcfile_total_frms = get_file_frame_num(ref_file, &ref_frame);
+    dstfile_total_frms = get_file_frame_num(dst_file, &dst_frame);
+    max_avail_frames   = srcfile_total_frms < dstfile_total_frms ? dstfile_total_frms : srcfile_total_frms;
+    max_avail_frames   = max_avail_frames < qmctx->i_frame_num ? max_avail_frames : qmctx->i_frame_num;
+    fprintf(out_file, "Reference file contain %d frames, Dst file contain %d frames!\n", srcfile_total_frms, dstfile_total_frms);
+
     if (jump_to_frame(ref_file, ref_frame.frame_size, qmctx->i_ref_skip_num) < 0)
     {
-        printf("Ref yuv jump to %d frame failed!\n", qmctx->i_ref_skip_num);
+        fprintf(stderr, "Ref yuv jump to %d frame failed!\n", qmctx->i_ref_skip_num);
         return 0;
     }
     if (jump_to_frame(dst_file, dst_frame.frame_size, qmctx->i_dst_skip_num) < 0)
     {
-        printf("Dst yuv jump to %d frame failed!\n", qmctx->i_dst_skip_num);
+        fprintf(stderr, "Dst yuv jump to %d frame failed!\n", qmctx->i_dst_skip_num);
         return 0;
     }
 
@@ -161,12 +171,12 @@ int process_quality_metric_singlethread(QMContext* qmctx)
     pixel_max_ssd = pixel_max_value * pixel_max_value;
 
     //// Step 1: Show Title
-    printf(" Frame    ");
+    fprintf(out_file, " Frame    ");
     if(qmctx->i_metric_method & M_PSNR)
-        printf("PSNR_Y    PSNR_U    PSNR_V    ");
+        fprintf(out_file, "PSNR_Y    PSNR_U    PSNR_V    ");
     if (qmctx->i_metric_method & M_SSIM)
-        printf("SSIM_Y    SSIM_U    SSIM_V    ");
-    printf("\n");
+        fprintf(out_file, "SSIM_Y    SSIM_U    SSIM_V    ");
+    fprintf(out_file, "\n");
 
     //// Step 2: Metric Quality
     size_temp = (2 * qmctx->ia_width[CIDX_Y] + 12) * (qmctx->i_bit_depth > 8 ? sizeof(int64_t[4]) : sizeof(int[4]));
@@ -179,7 +189,7 @@ int process_quality_metric_singlethread(QMContext* qmctx)
             break;
         if (read_nframe(dst_file, &dst_frame, i) < 0)
             break;
-        printf("%6d    ", i + 1);
+        fprintf(out_file, "%6d    ", i + 1);
         if (qmctx->i_metric_method & M_PSNR)
         {
             get_frame_ssd(&ref_frame, &dst_frame, frame_ssd);
@@ -188,7 +198,7 @@ int process_quality_metric_singlethread(QMContext* qmctx)
                 frame_psnr[cidx] = ssd_to_psnr(pixel_max_ssd * ref_frame.width[cidx] * ref_frame.height[cidx], frame_ssd[cidx]);
                 avg_psnr[cidx] += frame_psnr[cidx];
             }
-            printf("%6.3f    %6.3f    %6.3f    ", frame_psnr[CIDX_Y], frame_psnr[CIDX_U], frame_psnr[CIDX_V]);
+            fprintf(out_file, "%6.3f    %6.3f    %6.3f    ", frame_psnr[CIDX_Y], frame_psnr[CIDX_U], frame_psnr[CIDX_V]);
         }
         if (qmctx->i_metric_method & M_SSIM)
         {
@@ -204,19 +214,24 @@ int process_quality_metric_singlethread(QMContext* qmctx)
                                                         ref_frame.width[cidx], ref_frame.height[cidx], temp, pixel_max_value);
                 avg_ssim[cidx] += frame_ssim[cidx];
             }
-            printf("%6.3f    %6.3f    %6.3f    ", frame_ssim[CIDX_Y], frame_ssim[CIDX_U], frame_ssim[CIDX_V]);
+            fprintf(out_file, "%6.3f    %6.3f    %6.3f    ", frame_ssim[CIDX_Y], frame_ssim[CIDX_U], frame_ssim[CIDX_V]);
         }
-        printf("\n");
+        fprintf(out_file, "\n");
+        fflush(out_file);
+        progress = 100 * (double)i / max_avail_frames;
+        fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\bFinished %3d%%", (int)progress);
+        fflush(stderr);
     }
+    //fprintf(stderr, "\b\b\b\b\b\b\b\b\b\b\b\b\bFinished %3d%%", (int)100);
 
     /// Step 3. Show Average result
     qmctx->i_frame_num = i == 0 ? 1 : i;
-    printf("\nAverage   ");
+    fprintf(out_file, "\nAverage   ");
     if (qmctx->i_metric_method & M_PSNR)
-        printf("%6.3f    %6.3f    %6.3f    ", avg_psnr[CIDX_Y] / qmctx->i_frame_num, avg_psnr[CIDX_U] / qmctx->i_frame_num, avg_psnr[CIDX_V] / qmctx->i_frame_num);
+        fprintf(out_file, "%6.3f    %6.3f    %6.3f    ", avg_psnr[CIDX_Y] / qmctx->i_frame_num, avg_psnr[CIDX_U] / qmctx->i_frame_num, avg_psnr[CIDX_V] / qmctx->i_frame_num);
     if (qmctx->i_metric_method & M_SSIM)
-        printf("%6.3f    %6.3f    %6.3f    ", avg_ssim[CIDX_Y] / qmctx->i_frame_num, avg_ssim[CIDX_U] / qmctx->i_frame_num, avg_ssim[CIDX_V] / qmctx->i_frame_num);
-    printf("\n");
+        fprintf(out_file, "%6.3f    %6.3f    %6.3f    ", avg_ssim[CIDX_Y] / qmctx->i_frame_num, avg_ssim[CIDX_U] / qmctx->i_frame_num, avg_ssim[CIDX_V] / qmctx->i_frame_num);
+    fprintf(out_file, "\n");
 
     /// Step 4. Release resource
     free_frame(&ref_frame);
@@ -224,6 +239,7 @@ int process_quality_metric_singlethread(QMContext* qmctx)
     free(temp);
     fclose(dst_file);
     fclose(ref_file);
+	fclose(out_file);
     return 0;
 }
 
@@ -387,11 +403,24 @@ int main(int argc, char* argv[])
     QMContext qmctx;
     get_default_qmctx(&qmctx);
     parse_cmds(argc, argv, &qmctx);
+
+    if (strlen(qmctx.s_out_fname) > 0)
+    {
+        qmctx.out_file = fopen(qmctx.s_out_fname, "w");
+        if (NULL == qmctx.out_file)
+        {
+            fprintf(stderr, "Open output file %s error!\n", qmctx.s_out_fname);
+            return -1;
+        }
+    }
+
     show_parameters(&qmctx);
 
     if (qmctx.i_threads > 1)
         process_quality_metric_multithread(&qmctx);
     else
         process_quality_metric_singlethread(&qmctx);
+
+    fclose(qmctx.out_file);
     return 1;
 }
